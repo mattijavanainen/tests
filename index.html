@@ -2,153 +2,554 @@
 <html lang="fi">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
-<title>Kertotaulukoe</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Laskumatka: kertolaskut 3. luokalle</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#f4f7fb;--card:#fff;--ink:#1d2b3a;--mute:#6b7a8c;--acc:#3b6ef5;--ok:#1fa75a;--bad:#e5484d;--key:#e8eef7;
-box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#10161e;--card:#1b2430;--ink:#eef3f9;--mute:#93a3b6;--key:#27323f}}
-:root[data-theme="dark"]{--bg:#10161e;--card:#1b2430;--ink:#eef3f9;--mute:#93a3b6;--key:#27323f}
-*{box-sizing:inherit;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none}
-html,body{height:100%;margin:0}
-body{background:var(--bg);color:var(--ink);font-family:-apple-system,"Helvetica Neue",Arial,sans-serif;display:flex;justify-content:center;touch-action:manipulation}
-main{width:100%;max-width:520px;padding:16px;display:flex;flex-direction:column;gap:14px}
-header{display:flex;align-items:center;justify-content:space-between;gap:10px}
-h1{font-size:22px;margin:0}
-button{font:inherit;color:inherit;border:0;cursor:pointer}
-.restart{background:var(--card);padding:12px 18px;border-radius:14px;font-weight:600;box-shadow:0 1px 3px rgba(0,0,0,.15)}
-.bar{height:10px;background:var(--key);border-radius:6px;overflow:hidden}
-.bar i{display:block;height:100%;width:0;background:var(--acc);transition:width .3s}
-.meta{display:flex;justify-content:space-between;color:var(--mute);font-size:16px}
-.card{background:var(--card);border-radius:22px;padding:22px 16px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,.12)}
-.q{font-size:clamp(44px,12vw,64px);font-weight:700}
-.ans{margin-top:10px;font-size:clamp(40px,11vw,56px);min-height:1.3em;border-bottom:4px solid var(--acc);display:inline-block;min-width:3.2ch;padding:0 12px}
-.card.ok .ans{color:var(--ok);border-color:var(--ok)}
-.card.bad .ans{color:var(--bad);border-color:var(--bad)}
-.msg{min-height:1.5em;margin-top:10px;font-size:20px;font-weight:600}
-.pad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
-.pad button{background:var(--key);border-radius:16px;font-size:30px;font-weight:600;padding:18px 0}
-.pad button:active{filter:brightness(.9)}
-.pad .go{background:var(--acc);color:#fff;font-size:22px}
-.end{display:none;text-align:center}
-.end h2{font-size:32px;margin:6px 0}
-.end p{font-size:20px;color:var(--mute);margin:6px 0 18px}
-.end button{background:var(--acc);color:#fff;padding:16px 28px;border-radius:16px;font-size:20px;font-weight:600}
-canvas{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:5}
+:root{
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  color-scheme:light;
+  --paper:#f3f8fd; --line:#d5e4f2; --ink:#1c2a48; --muted:#56678a;
+  --card:#ffffff; --hl:#ffe24a; --hl-ink:#1c2a48;
+  --ok:#23945a; --ok-bg:#e2f6ea; --bad:#d23f3f; --bad-bg:#fde8e8;
+  --key:#ffffff; --keyline:#bfd0e4; --accent:#2c6bd6; --accent-ink:#ffffff;
+  --shadow:#1c2a48;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --paper:#141d2b; --line:#1f2d41; --ink:#e9eff9; --muted:#9db0cb;
+    --card:#1d2a3d; --hl:#f2cf2e; --hl-ink:#1a1a1a;
+    --ok:#4cc884; --ok-bg:#163527; --bad:#ff7070; --bad-bg:#3d1c1f;
+    --key:#24344b; --keyline:#38506f; --accent:#5b95ff; --accent-ink:#0d1626;
+    --shadow:#0a111c;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --paper:#141d2b; --line:#1f2d41; --ink:#e9eff9; --muted:#9db0cb;
+  --card:#1d2a3d; --hl:#f2cf2e; --hl-ink:#1a1a1a;
+  --ok:#4cc884; --ok-bg:#163527; --bad:#ff7070; --bad-bg:#3d1c1f;
+  --key:#24344b; --keyline:#38506f; --accent:#5b95ff; --accent-ink:#0d1626;
+  --shadow:#0a111c;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{height:100%;scroll-padding-top:env(safe-area-inset-top,0px)}
+body{
+  margin:0;min-height:100%;
+  background-color:var(--paper);
+  background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);
+  background-size:28px 28px;
+  color:var(--ink);
+  font-family:"Fredoka","Avenir Next","Trebuchet MS","Segoe UI",system-ui,sans-serif;
+  -webkit-tap-highlight-color:transparent;
+  touch-action:manipulation;
+  -webkit-text-size-adjust:100%;
+}
+button{font:inherit;color:inherit;touch-action:manipulation;user-select:none;-webkit-user-select:none;cursor:pointer}
+button:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
+#app{max-width:1040px;margin:0 auto;padding:16px 18px 28px;min-height:100%;display:flex;flex-direction:column}
+
+/* Home */
+.home{display:flex;flex-direction:column;gap:22px;padding-top:2vh}
+.home h1{font-size:clamp(2.8rem,9vw,5rem);font-weight:700;margin:0;line-height:1}
+.home .lead{font-size:1.3rem;color:var(--muted);margin:0}
+.route{list-style:none;margin:0;padding:0;display:grid;gap:12px;counter-reset:st}
+.route li{
+  display:grid;grid-template-columns:52px 1fr auto;align-items:center;gap:14px;
+  background:var(--card);border:3px solid var(--ink);border-radius:18px;padding:12px 16px;
+}
+.route li::before{
+  counter-increment:st;content:counter(st);
+  width:46px;height:46px;border-radius:50%;background:var(--hl);color:var(--hl-ink);
+  display:grid;place-items:center;font-weight:700;font-size:1.5rem;border:3px solid var(--ink);
+}
+.route b{font-size:1.25rem;font-weight:600;display:block}
+.route small{color:var(--muted);font-size:1rem}
+.route .est{color:var(--muted);font-size:1rem;white-space:nowrap}
+.big{
+  background:var(--accent);color:var(--accent-ink);border:3px solid var(--ink);border-radius:18px;
+  font-size:1.6rem;font-weight:600;padding:16px 28px;box-shadow:5px 5px 0 var(--shadow);
+}
+.big:active{transform:translate(3px,3px);box-shadow:2px 2px 0 var(--shadow)}
+.ghost{background:var(--card);border:2px solid var(--keyline);border-radius:14px;padding:10px 16px;font-size:1.05rem;font-weight:500}
+.practice{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.practice p{margin:0 6px 0 0;color:var(--muted);width:100%}
+.history{background:var(--card);border:2px solid var(--keyline);border-radius:16px;padding:14px 18px}
+.history h3{margin:0 0 8px;font-weight:600;font-size:1.15rem}
+.history table{width:100%;border-collapse:collapse;font-size:1.05rem}
+.history td,.history th{padding:5px 4px;text-align:left}
+.history th{color:var(--muted);font-weight:500}
+
+/* Intro */
+.intro{flex:1;display:flex;flex-direction:column;justify-content:center;align-items:flex-start;gap:16px;max-width:640px;margin:0 auto;width:100%}
+.steps{display:flex;gap:10px}
+.steps span{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;font-weight:600;border:3px solid var(--keyline);background:var(--card);color:var(--muted)}
+.steps span.done{background:var(--ok);border-color:var(--ok);color:var(--card)}
+.steps span.now{background:var(--hl);border-color:var(--ink);color:var(--hl-ink)}
+.intro h2{font-size:clamp(2.2rem,6vw,3.4rem);margin:0;font-weight:700;line-height:1.05}
+.intro .desc{font-size:1.35rem;margin:0;line-height:1.4}
+.intro .prev{margin:0;padding:10px 14px;border-radius:12px;background:var(--ok-bg);font-size:1.1rem}
+
+/* Play */
+.play{flex:1;display:flex;flex-direction:column;gap:14px}
+.bar{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.where b{font-size:1.3rem;font-weight:600;display:block}
+.where span{color:var(--muted);font-size:1.05rem}
+.right{display:flex;align-items:center;gap:12px}
+.clock{font-size:1.9rem;font-weight:600;font-variant-numeric:tabular-nums;text-align:right;line-height:1}
+.clock small{display:block;font-size:.85rem;color:var(--muted);font-weight:400;margin-top:3px}
+.quit{background:transparent;border:2px solid var(--keyline);border-radius:12px;padding:8px 12px;font-size:.95rem;color:var(--muted)}
+.progress{height:10px;background:var(--line);border-radius:6px;overflow:hidden}
+.progress i{display:block;height:100%;background:var(--accent);transition:width .3s}
+.stage{flex:1;display:grid;gap:20px;align-content:center}
+@media (min-width:820px) and (orientation:landscape){
+  .stage{grid-template-columns:1.25fr 1fr;align-items:center}
+}
+.card{
+  background:var(--card);border:3px solid var(--ink);border-radius:24px;
+  padding:clamp(20px,4vw,40px);box-shadow:7px 7px 0 var(--shadow);
+  text-align:center;transition:border-color .15s,background .15s;
+}
+.card.ok{border-color:var(--ok);background:var(--ok-bg)}
+.card.bad{border-color:var(--bad);background:var(--bad-bg)}
+.q{font-size:clamp(2.6rem,10vw,5rem);font-weight:600;display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:.25em;font-variant-numeric:tabular-nums;line-height:1.1}
+.q .op{color:var(--muted);font-weight:500}
+.box{
+  display:inline-block;min-width:2.2ch;padding:0 .2em;border-radius:12px;
+  background:var(--hl);color:var(--hl-ink);border-bottom:5px solid var(--ink);
+}
+.fb{min-height:1.6em;margin-top:14px;font-size:1.4rem;font-weight:600}
+.card.ok .fb{color:var(--ok)}
+.card.bad .fb{color:var(--bad)}
+.hint{margin:0 0 14px;font-size:1.2rem;color:var(--muted)}
+
+.pad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;max-width:440px;width:100%;justify-self:center}
+.key{
+  min-height:68px;border-radius:16px;background:var(--key);border:2px solid var(--keyline);border-bottom-width:6px;
+  font-size:2rem;font-weight:600;
+}
+.key:active{transform:translateY(4px);border-bottom-width:2px}
+.key.okk{background:var(--accent);color:var(--accent-ink);border-color:var(--ink)}
+.key.del{font-size:1.4rem}
+
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:14px;max-width:460px;width:100%;justify-self:center}
+.opt{
+  min-height:100px;border-radius:20px;background:var(--key);border:3px solid var(--keyline);border-bottom-width:7px;
+  font-size:2.6rem;font-weight:600;font-variant-numeric:tabular-nums;
+}
+.opt:active{transform:translateY(4px);border-bottom-width:3px}
+.opt.right{background:var(--ok);border-color:var(--ok);color:var(--card)}
+.opt.wrong{background:var(--bad);border-color:var(--bad);color:var(--card)}
+.cd{height:14px;border-radius:8px;background:var(--line);overflow:hidden;margin-top:18px}
+.cd i{display:block;height:100%;width:100%;background:var(--accent)}
+.cd i.low{background:var(--bad)}
+
+.seq{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
+.num{
+  min-width:3.4ch;padding:.25em .4em;font-size:clamp(1.7rem,5vw,2.5rem);font-weight:600;
+  border-radius:14px;border:2px solid var(--keyline);background:var(--paper);text-align:center;
+  font-variant-numeric:tabular-nums;line-height:1.2;
+}
+button.num{background:var(--hl);color:var(--hl-ink);border:3px dashed var(--ink);min-height:1.7em}
+button.num.active{border-style:solid;box-shadow:0 0 0 4px var(--accent)}
+button.num.right{background:var(--ok);border:3px solid var(--ok);color:var(--card)}
+button.num.wrong{background:var(--bad);border:3px solid var(--bad);color:var(--card)}
+
+.shake{animation:shake .35s}
+@keyframes shake{25%{transform:translateX(-8px)}50%{transform:translateX(8px)}75%{transform:translateX(-4px)}}
+@media (prefers-reduced-motion: reduce){.shake{animation:none}.progress i{transition:none}}
+
+/* Final */
+.final{display:flex;flex-direction:column;gap:20px;max-width:680px;margin:0 auto;width:100%;padding-top:2vh}
+.final h2{font-size:clamp(2.2rem,7vw,3.6rem);margin:0;font-weight:700;line-height:1.05}
+.score{display:flex;gap:28px;flex-wrap:wrap;font-size:1.25rem}
+.score b{display:block;font-size:2.6rem;font-weight:700;font-variant-numeric:tabular-nums}
+.rows{background:var(--card);border:3px solid var(--ink);border-radius:18px;overflow:hidden}
+.rows div{display:grid;grid-template-columns:1fr auto auto;gap:16px;padding:12px 18px;font-size:1.15rem;align-items:center}
+.rows div+div{border-top:2px solid var(--line)}
+.rows small{display:block;color:var(--muted);font-size:.95rem}
+.rows .n{font-variant-numeric:tabular-nums;font-weight:600}
+.btns{display:flex;flex-wrap:wrap;gap:12px}
 </style>
 </head>
 <body>
-<canvas id="fw"></canvas>
-<main>
-<header><h1>✖️ Kertotaulukoe</h1><button class="restart" id="restart">Aloita alusta</button></header>
-<div id="quiz">
-<div class="meta"><span id="no">Tehtävä 1 / 10</span><span id="sc">Oikein: 0</span></div>
-<div class="bar"><i id="bar"></i></div>
-<div class="card" id="card" style="margin:14px 0">
-<div class="q" id="q"></div>
-<div class="ans" id="ans"></div>
-<div class="msg" id="msg"></div>
-</div>
-<div class="pad" id="pad"></div>
-</div>
-<div class="card end" id="end">
-<div style="font-size:64px" id="emo"></div>
-<h2 id="res"></h2>
-<p id="txt"></p>
-<button id="again">Uudet 10 tehtävää</button>
-</div>
-</main>
+<div id="app"></div>
 <script>
 (function(){
-var $=function(i){return document.getElementById(i)};
-var qs,idx,score,buf,locked;
-function newSet(){
-  var pairs=[],a,b,seen={};
-  while(pairs.length<10){a=1+Math.floor(Math.random()*10);b=1+Math.floor(Math.random()*10);
-    var k=a+'x'+b;if(seen[k]||seen[b+'x'+a])continue;seen[k]=1;pairs.push([a,b]);}
-  qs=pairs;idx=0;score=0;buf='';locked=false;stopFw();
-  $('quiz').style.display='block';$('end').style.display='none';show();
-}
-function show(){
-  var p=qs[idx];buf='';locked=false;
-  $('q').textContent=p[0]+' × '+p[1]+' =';
-  $('ans').textContent='';$('msg').textContent='';$('card').className='card';
-  $('no').textContent='Tehtävä '+(idx+1)+' / 10';
-  $('sc').textContent='Oikein: '+score;
-  $('bar').style.width=(idx*10)+'%';
-}
-function press(d){
-  if(locked)return;
-  if(d==='del'){buf=buf.slice(0,-1)}
-  else if(buf.length<3){buf+=d}
-  $('ans').textContent=buf;
-}
-function submit(){
-  if(locked||buf==='')return;
-  locked=true;var p=qs[idx],right=p[0]*p[1],ok=parseInt(buf,10)===right;
-  if(ok){score++;$('card').className='card ok';$('msg').textContent='Oikein! 🎉'}
-  else{$('card').className='card bad';$('msg').textContent='Oikea vastaus on '+right}
-  $('sc').textContent='Oikein: '+score;
-  setTimeout(function(){idx++;idx<10?show():finish()},ok?800:1800);
-}
-function finish(){
-  $('bar').style.width='100%';
-  $('quiz').style.display='none';$('end').style.display='block';
-  $('res').textContent=score+' / 10 oikein';
-  var good=score>=8;
-  $('emo').textContent=score===10?'🏆':good?'🌟':score>=5?'👍':'💪';
-  $('txt').textContent=score===10?'Täydellinen suoritus!':good?'Todella hienoa!':score>=5?'Hyvä yritys, harjoitellaan lisää!':'Älä luovuta, yritä uudelleen!';
-  if(good)startFw();
-}
-var pad=$('pad'),keys=['1','2','3','4','5','6','7','8','9','del','0','go'];
-keys.forEach(function(k){
-  var b=document.createElement('button');
-  b.textContent=k==='del'?'⌫':k==='go'?'Vastaa':k;
-  if(k==='go')b.className='go';
-  b.addEventListener('click',function(){k==='go'?submit():press(k)});
-  pad.appendChild(b);
-});
-document.addEventListener('keydown',function(e){
-  if(e.key>='0'&&e.key<='9')press(e.key);
-  else if(e.key==='Backspace')press('del');
-  else if(e.key==='Enter')submit();
-});
-$('restart').addEventListener('click',newSet);
-$('again').addEventListener('click',newSet);
+'use strict';
+var app = document.getElementById('app');
+var CHOICE_TIME = 4000;
+var STORE = 'laskumatka-historia';
 
-/* Ilotulitus */
-var cv=$('fw'),cx=cv.getContext('2d'),parts=[],raf=null,timer=null,t0=0;
-function size(){var r=window.devicePixelRatio||1;cv.width=innerWidth*r;cv.height=innerHeight*r;cx.setTransform(r,0,0,r,0,0)}
-addEventListener('resize',size);size();
-function burst(x,y){
-  var h=Math.random()*360,n=50+Math.floor(Math.random()*30);
-  for(var i=0;i<n;i++){var a=Math.random()*6.283,s=1+Math.random()*5;
-    parts.push({x:x,y:y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,l:1,c:'hsl('+(h+Math.random()*40)+',100%,60%)'});}
+var PARTS = [
+  {id:'tables', name:'Kertotaulut', short:'20 laskua, kirjoita vastaus', est:'n. 2,5 min',
+   desc:'Laske kertolaskut niin nopeasti kuin osaat. Kello käy koko osan ajan.'},
+  {id:'choice', name:'Pikavalinta', short:'12 tehtävää, valitse oikea', est:'n. 1 min',
+   desc:'Valitse oikea vastaus neljästä. Jokaiseen tehtävään on aikaa 4 sekuntia.'},
+  {id:'seq', name:'Lukujonot', short:'6 jonoa, täydennä puuttuvat', est:'n. 2 min',
+   desc:'Keksi, miten lukujono etenee. Napauta keltaista ruutua ja kirjoita puuttuva luku.'},
+  {id:'tens', name:'Kymmenet, sadat ja tuhannet', short:'12 laskua luvuilla 10, 100 ja 1000', est:'n. 2 min',
+   desc:'Kerro luvuilla 10, 100 ja 1000. Joskus puuttuu kerrottava luku.'}
+];
+
+function rnd(a,b){return a+Math.floor(Math.random()*(b-a+1));}
+function pick(a){return a[Math.floor(Math.random()*a.length)];}
+function shuffle(a){for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}return a;}
+function fmtTime(ms){var s=Math.round(ms/1000);var m=Math.floor(s/60);s=s%60;return m+':'+(s<10?'0':'')+s;}
+function dec(x){return x.toFixed(1).replace('.',',');}
+
+/* ---------- Task generators ---------- */
+function genTables(){
+  var pairs=[];
+  for(var a=2;a<=10;a++)for(var b=2;b<=10;b++){ if(!(a===10&&b===10)&&!(a===2&&b===2)) pairs.push([a,b]); }
+  shuffle(pairs);
+  // Prefer the harder tables 3 to 9, then fill
+  var hard=pairs.filter(function(p){return p[0]>2&&p[0]<10&&p[1]>2&&p[1]<10;});
+  var easy=pairs.filter(function(p){return hard.indexOf(p)<0;});
+  var chosen=hard.slice(0,15).concat(easy.slice(0,5));
+  return shuffle(chosen).map(function(p){return {tokens:[p[0],'·',p[1],'=',null],answer:p[0]*p[1]};});
 }
-function loop(){
-  cx.clearRect(0,0,innerWidth,innerHeight);
-  parts=parts.filter(function(p){return p.l>0});
-  parts.forEach(function(p){
-    p.x+=p.vx;p.y+=p.vy;p.vy+=.06;p.vx*=.985;p.l-=.013;
-    cx.globalAlpha=Math.max(p.l,0);cx.fillStyle=p.c;
-    cx.beginPath();cx.arc(p.x,p.y,2.5,0,6.283);cx.fill();
+function genChoice(){
+  var pairs=[];
+  for(var a=3;a<=9;a++)for(var b=3;b<=10;b++)pairs.push([a,b]);
+  return shuffle(pairs).slice(0,12).map(function(p){
+    var a=p[0],b=p[1],c=a*b;
+    var cand=shuffle([a*(b+1),a*(b-1),(a+1)*b,(a-1)*b,c+10,c-10,c+1,c-1,c+2]);
+    var opts=[c];
+    for(var i=0;i<cand.length&&opts.length<4;i++){var v=cand[i];if(v>0&&opts.indexOf(v)<0)opts.push(v);}
+    return {tokens:[a,'·',b,'=',null],answer:c,options:shuffle(opts)};
   });
-  cx.globalAlpha=1;
-  if(parts.length||timer)raf=requestAnimationFrame(loop);else raf=null;
 }
-function startFw(){
-  stopFw();t0=Date.now();
-  var go=function(){burst(innerWidth*(.15+Math.random()*.7),innerHeight*(.1+Math.random()*.4))};
-  go();go();
-  timer=setInterval(function(){go();if(Date.now()-t0>6000){clearInterval(timer);timer=null}},450);
+function genSeq(){
+  var plans=[
+    {step:pick([2,5]),down:false},
+    {step:pick([3,4]),down:false},
+    {step:pick([6,7,8,9]),down:false},
+    {step:pick([25,50]),down:false},
+    {step:100,down:false},
+    {step:pick([3,5,10]),down:true}
+  ];
+  return plans.map(function(p){
+    var len=7,start;
+    if(p.step>=25) start=p.step*rnd(0,4);
+    else start=rnd(0,4)*p.step+rnd(0,p.step-1)*(Math.random()<0.5?1:0);
+    var vals=[];
+    if(p.down){ var top=start+p.step*(len-1)+rnd(1,3)*p.step; for(var i=0;i<len;i++)vals.push(top-p.step*i); }
+    else { for(var j=0;j<len;j++)vals.push(start+p.step*j); }
+    // two missing, non-adjacent, among positions 2..6 so the first two are visible
+    var a=rnd(2,6),b;
+    do{b=rnd(2,6);}while(Math.abs(a-b)<2);
+    return {values:vals,blanks:[a,b].sort(function(x,y){return x-y;})};
+  });
+}
+function genTens(){
+  var makers=[
+    function(){var a=rnd(2,9);return {tokens:[a,'·',10,'=',null],answer:a*10};},
+    function(){var a=rnd(2,9);return {tokens:[a,'·',100,'=',null],answer:a*100};},
+    function(){var a=rnd(2,9);return {tokens:[a,'·',1000,'=',null],answer:a*1000};},
+    function(){var a=rnd(11,99);return {tokens:[a,'·',10,'=',null],answer:a*10};},
+    function(){var a=rnd(11,49);return {tokens:[10,'·',a,'=',null],answer:a*10};},
+    function(){var a=rnd(11,25);return {tokens:[a,'·',100,'=',null],answer:a*100};},
+    function(){var a=rnd(3,9);return {tokens:[null,'·',10,'=',a*10],answer:a};},
+    function(){var a=rnd(2,9),m=pick([100,1000]);return {tokens:[a,'·',null,'=',a*m],answer:m};}
+  ];
+  return shuffle([0,1,2,3,4,5,0,1,2,6,7,3]).map(function(i){return makers[i]();});
+}
+var GEN={tables:genTables,choice:genChoice,seq:genSeq,tens:genTens};
+
+/* ---------- Storage ---------- */
+function loadHistory(){try{var v=localStorage.getItem(STORE);return v?JSON.parse(v):[];}catch(e){return [];}}
+function saveHistory(entry){try{var h=loadHistory();h.unshift(entry);localStorage.setItem(STORE,JSON.stringify(h.slice(0,8)));}catch(e){}}
+
+/* ---------- State ---------- */
+var S=null, ticker=null, raf=null, pending=null;
+function cleanup(){
+  if(ticker){clearInterval(ticker);ticker=null;}
+  if(raf){cancelAnimationFrame(raf);raf=null;}
+  if(pending){clearTimeout(pending);pending=null;}
+}
+
+/* ---------- Home ---------- */
+function showHome(){
+  cleanup(); S=null;
+  var h=loadHistory();
+  var hist='';
+  if(h.length){
+    hist='<section class="history"><h3>Aiemmat kierrokset</h3><table><tr><th>Päivä</th><th>Oikein</th><th>Aika</th></tr>'+
+      h.slice(0,5).map(function(e){return '<tr><td>'+new Date(e.date).toLocaleDateString('fi-FI')+'</td><td>'+e.correct+'/'+e.total+'</td><td>'+fmtTime(e.time)+'</td></tr>';}).join('')+
+      '</table></section>';
+  }
+  app.innerHTML='<div class="home">'+
+    '<div><h1>Laskumatka</h1><p class="lead">Kertolaskuja neljässä osassa. Koko matka kestää noin 8 minuuttia.</p></div>'+
+    '<ol class="route">'+PARTS.map(function(p){return '<li><div><b>'+p.name+'</b><small>'+p.short+'</small></div><span class="est">'+p.est+'</span></li>';}).join('')+'</ol>'+
+    '<div><button class="big" id="start">Aloita matka</button></div>'+
+    '<div class="practice"><p>Tai harjoittele yhtä osaa:</p>'+PARTS.map(function(p,i){return '<button class="ghost" data-part="'+i+'">'+p.name+'</button>';}).join('')+'</div>'+
+    hist+'</div>';
+  document.getElementById('start').onclick=function(){startRun([0,1,2,3],true);};
+  Array.prototype.forEach.call(app.querySelectorAll('[data-part]'),function(b){
+    b.onclick=function(){startRun([Number(b.getAttribute('data-part'))],false);};
+  });
+}
+
+function startRun(queue,full){S={queue:queue,full:full,qi:0,results:[]};showIntro();}
+
+/* ---------- Intro ---------- */
+function showIntro(){
+  cleanup();
+  var p=PARTS[S.queue[S.qi]];
+  var prev=S.results[S.results.length-1];
+  var steps=S.full?'<div class="steps">'+S.queue.map(function(q,i){return '<span class="'+(i<S.qi?'done':i===S.qi?'now':'')+'">'+(i+1)+'</span>';}).join('')+'</div>':'';
+  app.innerHTML='<div class="intro">'+steps+
+    (prev?'<p class="prev">Edellinen osa valmis: '+prev.correct+'/'+prev.total+' oikein, aikaa '+fmtTime(prev.time)+'.</p>':'')+
+    '<h2>'+(S.full?'Osa '+(S.qi+1)+': ':'')+p.name+'</h2>'+
+    '<p class="desc">'+p.desc+'</p>'+
+    '<button class="big" id="go">Aloita osa</button>'+
+    '<button class="ghost" id="home">Takaisin alkuun</button></div>';
+  document.getElementById('go').onclick=startPart;
+  document.getElementById('home').onclick=showHome;
+}
+
+/* ---------- Play ---------- */
+function startPart(){
+  var p=PARTS[S.queue[S.qi]];
+  S.part=p; S.tasks=GEN[p.id](); S.ti=0; S.correct=0;
+  S.total=p.id==='seq'?S.tasks.reduce(function(s,t){return s+t.blanks.length;},0):S.tasks.length;
+  S.start=performance.now();
+  app.innerHTML='<div class="play"><header class="bar"><div class="where"><b>'+p.name+'</b><span id="count"></span></div>'+
+    '<div class="right"><div class="clock" id="clock">0:00</div><button class="quit" id="quit">Lopeta</button></div></header>'+
+    '<div class="progress"><i id="prog"></i></div><div class="stage" id="stage"></div></div>';
+  document.getElementById('quit').onclick=function(){if(confirm('Lopetetaanko peli?'))showHome();};
+  updClock(); ticker=setInterval(updClock,250);
+  renderTask();
+}
+function totalSoFar(){return S.results.reduce(function(s,r){return s+r.time;},0);}
+function updClock(){
+  var el=document.getElementById('clock'); if(!el||!S) return;
+  var t=performance.now()-S.start;
+  el.innerHTML=fmtTime(t)+(S.full&&S.qi>0?'<small>yhteensä '+fmtTime(totalSoFar()+t)+'</small>':'');
+}
+
+function keypad(){
+  var k=['1','2','3','4','5','6','7','8','9','del','0','ok'];
+  return '<div class="pad">'+k.map(function(x){
+    if(x==='del') return '<button class="key del" data-k="del" aria-label="Poista">⌫</button>';
+    if(x==='ok') return '<button class="key okk" data-k="ok">OK</button>';
+    return '<button class="key" data-k="'+x+'">'+x+'</button>';
+  }).join('')+'</div>';
+}
+
+function renderTask(){
+  S.locked=false; S.input='';
+  var n=S.tasks.length;
+  document.getElementById('count').textContent=(S.part.id==='seq'?'Jono ':'Tehtävä ')+(S.ti+1)+'/'+n;
+  document.getElementById('prog').style.width=(S.ti/n*100)+'%';
+  var stage=document.getElementById('stage');
+  var id=S.part.id;
+  if(id==='choice'){
+    var t=S.tasks[S.ti];
+    stage.innerHTML='<div class="card" id="card"><div class="q" id="q"></div><div class="cd"><i id="cd"></i></div><div class="fb" id="fb"></div></div>'+
+      '<div class="opts">'+t.options.map(function(o){return '<button class="opt" data-o="'+o+'">'+o+'</button>';}).join('')+'</div>';
+    drawQ('?');
+    Array.prototype.forEach.call(stage.querySelectorAll('.opt'),function(b){
+      b.onclick=function(){chooseOption(b);};
+    });
+    startCountdown();
+  } else if(id==='seq'){
+    var s=S.tasks[S.ti];
+    S.vals={}; S.active=s.blanks[0];
+    stage.innerHTML='<div class="card" id="card"><p class="hint">Täydennä puuttuvat luvut.</p><div class="seq" id="seq"></div><div class="fb" id="fb"></div></div>'+keypad();
+    drawSeq();
+    bindPad(stage);
+  } else {
+    stage.innerHTML='<div class="card" id="card"><div class="q" id="q"></div><div class="fb" id="fb"></div></div>'+keypad();
+    drawQ();
+    bindPad(stage);
+  }
+}
+
+function drawQ(boxText){
+  var t=S.tasks[S.ti];
+  var shown=boxText!==undefined?boxText:(S.input||'\u00a0');
+  document.getElementById('q').innerHTML=t.tokens.map(function(x){
+    if(x===null) return '<span class="box">'+shown+'</span>';
+    if(x==='·'||x==='=') return '<span class="op">'+x+'</span>';
+    return '<span>'+x+'</span>';
+  }).join('');
+}
+
+function drawSeq(){
+  var s=S.tasks[S.ti];
+  var el=document.getElementById('seq');
+  el.innerHTML=s.values.map(function(v,i){
+    if(s.blanks.indexOf(i)>=0){
+      var cls='num'+(i===S.active?' active':'')+(S.marks&&S.marks[i]?' '+S.marks[i]:'');
+      return '<button class="'+cls+'" data-b="'+i+'" aria-label="Puuttuva luku">'+(S.vals[i]||'')+'</button>';
+    }
+    return '<span class="num">'+v+'</span>';
+  }).join('');
+  Array.prototype.forEach.call(el.querySelectorAll('[data-b]'),function(b){
+    b.onclick=function(){ if(S.locked) return; S.active=Number(b.getAttribute('data-b')); drawSeq(); };
+  });
+}
+
+function bindPad(stage){
+  Array.prototype.forEach.call(stage.querySelectorAll('.key'),function(b){
+    b.onclick=function(){handleKey(b.getAttribute('data-k'));};
+  });
+}
+
+function shake(){
+  var c=document.getElementById('card'); if(!c) return;
+  c.classList.remove('shake'); void c.offsetWidth; c.classList.add('shake');
+}
+
+function handleKey(k){
+  if(!S||S.locked||!S.part) return;
+  var id=S.part.id;
+  if(id==='choice') return;
+  if(id==='seq'){ seqKey(k); return; }
+  if(k==='del'){S.input=S.input.slice(0,-1);drawQ();return;}
+  if(k==='ok'){
+    if(S.input===''){shake();return;}
+    var t=S.tasks[S.ti];
+    var ok=Number(S.input)===t.answer;
+    if(ok) S.correct++;
+    feedback(ok,'Oikea vastaus on '+t.answer);
+    return;
+  }
+  if(S.input.length<5){ if(S.input==='0') S.input=''; S.input+=k; drawQ(); }
+}
+
+function seqKey(k){
+  var a=S.active, cur=S.vals[a]||'';
+  var s=S.tasks[S.ti];
+  if(k==='del'){S.vals[a]=cur.slice(0,-1);drawSeq();return;}
+  if(k==='ok'){
+    var empty=s.blanks.filter(function(i){return !S.vals[i];});
+    if(empty.length){
+      if(!cur) shake();
+      S.active=empty[0]; drawSeq(); return;
+    }
+    var right=0; S.marks={};
+    s.blanks.forEach(function(i){
+      var ok=Number(S.vals[i])===s.values[i];
+      if(ok) right++;
+      S.marks[i]=ok?'right':'wrong';
+    });
+    S.correct+=right;
+    S.active=-1;
+    drawSeq();
+    var all=right===s.blanks.length;
+    feedback(all,'Oikeat luvut: '+s.blanks.map(function(i){return s.values[i];}).join(' ja '));
+    return;
+  }
+  if(cur.length<5){ if(cur==='0') cur=''; S.vals[a]=cur+k; drawSeq(); }
+}
+
+var PRAISE=['Oikein!','Hienoa!','Juuri niin!','Mahtavaa!','Loistavaa!'];
+function feedback(ok,msg){
+  S.locked=true;
+  var c=document.getElementById('card');
+  c.classList.add(ok?'ok':'bad');
+  document.getElementById('fb').textContent=ok?pick(PRAISE):msg;
+  pending=setTimeout(function(){pending=null;S.marks=null;nextTask();},ok?550:1700);
+}
+function nextTask(){
+  S.ti++;
+  if(S.ti>=S.tasks.length) endPart(); else renderTask();
+}
+
+/* ---------- Multiple choice countdown ---------- */
+function startCountdown(){
+  var t0=performance.now(), bar=document.getElementById('cd');
+  function loop(now){
+    var rem=CHOICE_TIME-(now-t0);
+    if(!bar||S.locked) return;
+    bar.style.width=Math.max(0,rem/CHOICE_TIME*100)+'%';
+    if(rem<1500) bar.classList.add('low');
+    if(rem<=0){
+      raf=null;
+      var t=S.tasks[S.ti];
+      revealOptions(null);
+      drawQ(String(t.answer));
+      feedback(false,'Aika loppui. Oikea vastaus on '+t.answer);
+      return;
+    }
+    raf=requestAnimationFrame(loop);
+  }
   raf=requestAnimationFrame(loop);
 }
-function stopFw(){
-  if(timer){clearInterval(timer);timer=null}
-  parts=[];if(raf){cancelAnimationFrame(raf);raf=null}
-  cx.clearRect(0,0,innerWidth,innerHeight);
+function revealOptions(chosen){
+  var t=S.tasks[S.ti];
+  Array.prototype.forEach.call(document.querySelectorAll('.opt'),function(b){
+    var v=Number(b.getAttribute('data-o'));
+    if(v===t.answer) b.classList.add('right');
+    else if(b===chosen) b.classList.add('wrong');
+  });
 }
-newSet();
+function chooseOption(b){
+  if(S.locked) return;
+  if(raf){cancelAnimationFrame(raf);raf=null;}
+  var t=S.tasks[S.ti];
+  var ok=Number(b.getAttribute('data-o'))===t.answer;
+  if(ok) S.correct++;
+  revealOptions(b);
+  drawQ(String(t.answer));
+  feedback(ok,'Oikea vastaus on '+t.answer);
+}
+
+/* ---------- End of part and final ---------- */
+function endPart(){
+  var time=performance.now()-S.start;
+  cleanup();
+  S.results.push({id:S.part.id,name:S.part.name,correct:S.correct,total:S.total,time:time,items:S.tasks.length});
+  S.part=null;
+  S.qi++;
+  if(S.qi<S.queue.length) showIntro(); else showFinal();
+}
+
+function showFinal(){
+  cleanup();
+  var c=0,t=0,time=0;
+  S.results.forEach(function(r){c+=r.correct;t+=r.total;time+=r.time;});
+  var pct=t?c/t:0;
+  var title=pct>=0.9?'Huippusuoritus!':pct>=0.7?'Hienoa työtä!':pct>=0.5?'Hyvä yritys!':'Hyvä alku!';
+  var note=pct>=0.9?'Osaat kertolaskut todella hyvin.':pct>=0.7?'Vielä vähän harjoittelua, niin olet mestari.':'Harjoittele lisää. Joka kierroksella opit uutta.';
+  if(S.full) saveHistory({date:Date.now(),correct:c,total:t,time:Math.round(time)});
+  var rows=S.results.map(function(r){
+    var extra=r.id==='tables'?'<small>keskimäärin '+dec(r.time/r.items/1000)+' s / lasku</small>':'';
+    return '<div><span>'+r.name+extra+'</span><span class="n">'+r.correct+'/'+r.total+'</span><span class="n">'+fmtTime(r.time)+'</span></div>';
+  }).join('');
+  var queue=S.queue.slice(), full=S.full;
+  app.innerHTML='<div class="final"><h2>'+title+'</h2><p style="margin:0;font-size:1.25rem">'+note+'</p>'+
+    '<div class="score"><div><b>'+c+'/'+t+'</b>oikein</div><div><b>'+fmtTime(time)+'</b>aikaa yhteensä</div></div>'+
+    '<div class="rows">'+rows+'</div>'+
+    '<div class="btns"><button class="big" id="again">Pelaa uudelleen</button><button class="ghost" id="home">Alkuun</button></div></div>';
+  document.getElementById('again').onclick=function(){startRun(queue,full);};
+  document.getElementById('home').onclick=showHome;
+}
+
+/* ---------- Hardware keyboard ---------- */
+document.addEventListener('keydown',function(e){
+  if(!S||!S.part||S.locked) return;
+  if(S.part.id==='choice'){
+    var n=Number(e.key);
+    var opts=document.querySelectorAll('.opt');
+    if(n>=1&&n<=opts.length) chooseOption(opts[n-1]);
+    return;
+  }
+  if(/^[0-9]$/.test(e.key)) handleKey(e.key);
+  else if(e.key==='Backspace'){e.preventDefault();handleKey('del');}
+  else if(e.key==='Enter'){e.preventDefault();handleKey('ok');}
+});
+
+showHome();
 })();
 </script>
 </body>

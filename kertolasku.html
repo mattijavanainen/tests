@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<title>Kertotaulukoe</title>
+<style>
+:root{--bg:#f4f7fb;--card:#fff;--ink:#1d2b3a;--mute:#6b7a8c;--acc:#3b6ef5;--ok:#1fa75a;--bad:#e5484d;--key:#e8eef7;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#10161e;--card:#1b2430;--ink:#eef3f9;--mute:#93a3b6;--key:#27323f}}
+:root[data-theme="dark"]{--bg:#10161e;--card:#1b2430;--ink:#eef3f9;--mute:#93a3b6;--key:#27323f}
+*{box-sizing:inherit;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--ink);font-family:-apple-system,"Helvetica Neue",Arial,sans-serif;display:flex;justify-content:center;touch-action:manipulation}
+main{width:100%;max-width:520px;padding:16px;display:flex;flex-direction:column;gap:14px}
+header{display:flex;align-items:center;justify-content:space-between;gap:10px}
+h1{font-size:22px;margin:0}
+button{font:inherit;color:inherit;border:0;cursor:pointer}
+.restart{background:var(--card);padding:12px 18px;border-radius:14px;font-weight:600;box-shadow:0 1px 3px rgba(0,0,0,.15)}
+.bar{height:10px;background:var(--key);border-radius:6px;overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:var(--acc);transition:width .3s}
+.meta{display:flex;justify-content:space-between;color:var(--mute);font-size:16px}
+.card{background:var(--card);border-radius:22px;padding:22px 16px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,.12)}
+.q{font-size:clamp(44px,12vw,64px);font-weight:700}
+.ans{margin-top:10px;font-size:clamp(40px,11vw,56px);min-height:1.3em;border-bottom:4px solid var(--acc);display:inline-block;min-width:3.2ch;padding:0 12px}
+.card.ok .ans{color:var(--ok);border-color:var(--ok)}
+.card.bad .ans{color:var(--bad);border-color:var(--bad)}
+.msg{min-height:1.5em;margin-top:10px;font-size:20px;font-weight:600}
+.pad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.pad button{background:var(--key);border-radius:16px;font-size:30px;font-weight:600;padding:18px 0}
+.pad button:active{filter:brightness(.9)}
+.pad .go{background:var(--acc);color:#fff;font-size:22px}
+.end{display:none;text-align:center}
+.end h2{font-size:32px;margin:6px 0}
+.end p{font-size:20px;color:var(--mute);margin:6px 0 18px}
+.end button{background:var(--acc);color:#fff;padding:16px 28px;border-radius:16px;font-size:20px;font-weight:600}
+canvas{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:5}
+</style>
+</head>
+<body>
+<canvas id="fw"></canvas>
+<main>
+<header><h1>✖️ Kertotaulukoe</h1><button class="restart" id="restart">Aloita alusta</button></header>
+<div id="quiz">
+<div class="meta"><span id="no">Tehtävä 1 / 10</span><span id="sc">Oikein: 0</span></div>
+<div class="bar"><i id="bar"></i></div>
+<div class="card" id="card" style="margin:14px 0">
+<div class="q" id="q"></div>
+<div class="ans" id="ans"></div>
+<div class="msg" id="msg"></div>
+</div>
+<div class="pad" id="pad"></div>
+</div>
+<div class="card end" id="end">
+<div style="font-size:64px" id="emo"></div>
+<h2 id="res"></h2>
+<p id="txt"></p>
+<button id="again">Uudet 10 tehtävää</button>
+</div>
+</main>
+<script>
+(function(){
+var $=function(i){return document.getElementById(i)};
+var qs,idx,score,buf,locked;
+function newSet(){
+  var pairs=[],a,b,seen={};
+  while(pairs.length<10){a=1+Math.floor(Math.random()*10);b=1+Math.floor(Math.random()*10);
+    var k=a+'x'+b;if(seen[k]||seen[b+'x'+a])continue;seen[k]=1;pairs.push([a,b]);}
+  qs=pairs;idx=0;score=0;buf='';locked=false;stopFw();
+  $('quiz').style.display='block';$('end').style.display='none';show();
+}
+function show(){
+  var p=qs[idx];buf='';locked=false;
+  $('q').textContent=p[0]+' × '+p[1]+' =';
+  $('ans').textContent='';$('msg').textContent='';$('card').className='card';
+  $('no').textContent='Tehtävä '+(idx+1)+' / 10';
+  $('sc').textContent='Oikein: '+score;
+  $('bar').style.width=(idx*10)+'%';
+}
+function press(d){
+  if(locked)return;
+  if(d==='del'){buf=buf.slice(0,-1)}
+  else if(buf.length<3){buf+=d}
+  $('ans').textContent=buf;
+}
+function submit(){
+  if(locked||buf==='')return;
+  locked=true;var p=qs[idx],right=p[0]*p[1],ok=parseInt(buf,10)===right;
+  if(ok){score++;$('card').className='card ok';$('msg').textContent='Oikein! 🎉'}
+  else{$('card').className='card bad';$('msg').textContent='Oikea vastaus on '+right}
+  $('sc').textContent='Oikein: '+score;
+  setTimeout(function(){idx++;idx<10?show():finish()},ok?800:1800);
+}
+function finish(){
+  $('bar').style.width='100%';
+  $('quiz').style.display='none';$('end').style.display='block';
+  $('res').textContent=score+' / 10 oikein';
+  var good=score>=8;
+  $('emo').textContent=score===10?'🏆':good?'🌟':score>=5?'👍':'💪';
+  $('txt').textContent=score===10?'Täydellinen suoritus!':good?'Todella hienoa!':score>=5?'Hyvä yritys, harjoitellaan lisää!':'Älä luovuta, yritä uudelleen!';
+  if(good)startFw();
+}
+var pad=$('pad'),keys=['1','2','3','4','5','6','7','8','9','del','0','go'];
+keys.forEach(function(k){
+  var b=document.createElement('button');
+  b.textContent=k==='del'?'⌫':k==='go'?'Vastaa':k;
+  if(k==='go')b.className='go';
+  b.addEventListener('click',function(){k==='go'?submit():press(k)});
+  pad.appendChild(b);
+});
+document.addEventListener('keydown',function(e){
+  if(e.key>='0'&&e.key<='9')press(e.key);
+  else if(e.key==='Backspace')press('del');
+  else if(e.key==='Enter')submit();
+});
+$('restart').addEventListener('click',newSet);
+$('again').addEventListener('click',newSet);
+
+/* Ilotulitus */
+var cv=$('fw'),cx=cv.getContext('2d'),parts=[],raf=null,timer=null,t0=0;
+function size(){var r=window.devicePixelRatio||1;cv.width=innerWidth*r;cv.height=innerHeight*r;cx.setTransform(r,0,0,r,0,0)}
+addEventListener('resize',size);size();
+function burst(x,y){
+  var h=Math.random()*360,n=50+Math.floor(Math.random()*30);
+  for(var i=0;i<n;i++){var a=Math.random()*6.283,s=1+Math.random()*5;
+    parts.push({x:x,y:y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,l:1,c:'hsl('+(h+Math.random()*40)+',100%,60%)'});}
+}
+function loop(){
+  cx.clearRect(0,0,innerWidth,innerHeight);
+  parts=parts.filter(function(p){return p.l>0});
+  parts.forEach(function(p){
+    p.x+=p.vx;p.y+=p.vy;p.vy+=.06;p.vx*=.985;p.l-=.013;
+    cx.globalAlpha=Math.max(p.l,0);cx.fillStyle=p.c;
+    cx.beginPath();cx.arc(p.x,p.y,2.5,0,6.283);cx.fill();
+  });
+  cx.globalAlpha=1;
+  if(parts.length||timer)raf=requestAnimationFrame(loop);else raf=null;
+}
+function startFw(){
+  stopFw();t0=Date.now();
+  var go=function(){burst(innerWidth*(.15+Math.random()*.7),innerHeight*(.1+Math.random()*.4))};
+  go();go();
+  timer=setInterval(function(){go();if(Date.now()-t0>6000){clearInterval(timer);timer=null}},450);
+  raf=requestAnimationFrame(loop);
+}
+function stopFw(){
+  if(timer){clearInterval(timer);timer=null}
+  parts=[];if(raf){cancelAnimationFrame(raf);raf=null}
+  cx.clearRect(0,0,innerWidth,innerHeight);
+}
+newSet();
+})();
+</script>
+</body>
+</html>
